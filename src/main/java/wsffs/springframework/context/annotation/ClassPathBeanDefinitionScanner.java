@@ -5,6 +5,8 @@ import org.reflections.scanners.Scanners;
 import wsffs.springframework.beans.factory.config.BeanDefinition;
 import wsffs.springframework.beans.factory.config.DefaultBeanDefinition;
 import wsffs.springframework.beans.factory.support.BeanDefinitionRegistry;
+import wsffs.springframework.beans.factory.support.BeanNameGenerator;
+import wsffs.springframework.beans.factory.support.DefaultBeanNameGenerator;
 import wsffs.springframework.streotype.Component;
 
 import java.lang.reflect.Constructor;
@@ -39,6 +41,8 @@ public class ClassPathBeanDefinitionScanner {
 
     private final BeanDefinitionRegistry registry;
 
+    private final BeanNameGenerator beanNameGenerator = DefaultBeanNameGenerator.INSTANCE;
+
     public ClassPathBeanDefinitionScanner(BeanDefinitionRegistry registry) {
         this.registry = registry;
     }
@@ -56,11 +60,11 @@ public class ClassPathBeanDefinitionScanner {
                 final Constructor<?> constructor = determineConstructor(candidate);
                 final Class<?>[] parameterTypes = constructor.getParameterTypes();
                 for (Class<?> parameterType : parameterTypes) {
-                    final String beanNameOfDependency = generateBeanNameFromClass(parameterType);
+                    final String beanNameOfDependency = beanNameGenerator.generateBeanNameFromClass(parameterType);
                     dbd.setDependsOn(beanNameOfDependency);
                 }
 
-                final String beanNameFromClass = generateBeanNameFromClass(candidate);
+                final String beanNameFromClass = beanNameGenerator.generateBeanNameFromClass(candidate);
                 registry.registerBeanDefinition(beanNameFromClass, dbd);
             }
         }
@@ -70,12 +74,5 @@ public class ClassPathBeanDefinitionScanner {
 
     private Constructor<?> determineConstructor(Class<?> candidate) {
         return candidate.getDeclaredConstructors()[0];
-    }
-
-    private String generateBeanNameFromClass(Class<?> clazz) {
-        final String simpleName = clazz.getSimpleName();
-        final String first = simpleName.substring(0, 1);
-        final String rest = simpleName.substring(1);
-        return first.toLowerCase() + rest;
     }
 }
