@@ -1,13 +1,19 @@
 package wsffs.springframework.boot.web.servlet.context;
 
+import wsffs.springframework.beans.BeanUtils;
 import wsffs.springframework.beans.BeansException;
 import wsffs.springframework.beans.factory.config.BeanDefinition;
 import wsffs.springframework.beans.factory.support.BeanDefinitionRegistry;
+import wsffs.springframework.beans.factory.support.BeanNameGenerator;
+import wsffs.springframework.beans.factory.support.DefaultBeanNameGenerator;
 import wsffs.springframework.context.ApplicationContext;
 import wsffs.springframework.context.annotation.AnnotationConfigRegistry;
 import wsffs.springframework.context.annotation.ClassPathBeanDefinitionScanner;
 
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class AnnotationConfigServletWebServerApplicationContext
@@ -18,6 +24,9 @@ public class AnnotationConfigServletWebServerApplicationContext
     private String[] basePackages;
 
     private final Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
+    private final Map<String, Object> beanMap = new HashMap<>();
+
+    private final BeanNameGenerator beanNameGenerator = DefaultBeanNameGenerator.INSTANCE;
 
     private AnnotationConfigServletWebServerApplicationContext() {
         this.scanner = new ClassPathBeanDefinitionScanner(this);
@@ -47,12 +56,63 @@ public class AnnotationConfigServletWebServerApplicationContext
      *                               (all or nothing)
      */
     public void refresh() throws BeansException {
+        scanner.scan(basePackages);
 
+        // 의존성이 없는 bean부터 초기화
+        for (BeanDefinition beanDefinition : beanDefinitionMap.values()) {
+            if (beanDefinition.getDependsOn().length == 0) {
+                buildBeanAndRegisterBeanWithBeanDefinition(beanDefinition);
+            }
+        }
+
+        // 의존성이 존재하는 bean 초기화
+        for (BeanDefinition beanDefinition : beanDefinitionMap.values()) {
+            if (beanDefinition.getDependsOn().length > 0) {
+                buildBeanAndRegisterBeanWithBeanDefinition(beanDefinition);
+            }
+        }
+    }
+
+    private Object buildBeanAndRegisterBeanWithBeanDefinition(BeanDefinition beanDefinition) {
+        final Class<?> beanClass = beanDefinition.getBeanClass();
+        final String beanName = beanNameGenerator.generateBeanNameFromClass(beanClass);
+        final Object existingBean = beanMap.get(beanName);
+
+        // 이미 해당 bean이 존재하는 경우 반환
+        if (existingBean != null) {
+            return existingBean;
+        }
+
+        final String[] nameOfDependencies = beanDefinition.getDependsOn();
+        // 의존성이 존재하지 않는 경우 바로 생성해서 반환
+        if (nameOfDependencies.length == 0) {
+            final Constructor<?> constructor = BeanUtils.getCandidateConstructor(beanClass);
+            final Object newInstance = BeanUtils.instantiate(constructor, beanClass);
+            beanMap.put(beanName, newInstance);
+            return newInstance;
+        }
+
+        // 의존성이 있다면 의존성 그래프를 탐색하자
+        final List<Object> dependencies = new ArrayList<>();
+        for (String nameOfDependency : nameOfDependencies) {
+            final BeanDefinition beanDefinitionOfDependency = beanDefinitionMap.get(nameOfDependency);
+            dependencies.add(buildBeanAndRegisterBeanWithBeanDefinition(beanDefinitionOfDependency));
+        }
+
+        final Constructor<?> constructor = BeanUtils.getCandidateConstructor(beanClass);
+        final Object newInstance = BeanUtils.instantiate(constructor, beanClass, dependencies.toArray());
+        beanMap.put(beanName, newInstance);
+        return newInstance;
     }
 
     @Override
     public <T> T getBean(String name, Class<T> requiredType) throws BeansException {
-        return null;
+        final Object maybeBean = beanMap.get(name);
+        if (maybeBean == null) {
+            throw new BeansException("Unable to find bean.");
+        }
+
+        return requiredType.cast(maybeBean);
     }
 
     @Override
