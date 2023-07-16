@@ -1,9 +1,13 @@
 package wsffs.springframework.context.annotation;
 
+import org.reflections.Reflections;
+import org.reflections.scanners.Scanners;
+import wsffs.springframework.beans.factory.config.BeanDefinition;
+import wsffs.springframework.beans.factory.config.DefaultBeanDefinition;
 import wsffs.springframework.beans.factory.support.BeanDefinitionRegistry;
+import wsffs.springframework.streotype.Component;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.lang.reflect.Constructor;
 import java.util.Set;
 
 /**
@@ -40,6 +44,38 @@ public class ClassPathBeanDefinitionScanner {
     }
 
     public int scan(String... basePackages) {
-        return 0;
+        final int beanCountAtScanStart = registry.getBeanDefinitionCount();
+
+        for (String basePackage : basePackages) {
+            final Reflections reflections = new Reflections(basePackage, Scanners.TypesAnnotated);
+            final Set<Class<?>> candidates = reflections.getTypesAnnotatedWith(Component.class);
+            for (Class<?> candidate : candidates) {
+                final BeanDefinition dbd = new DefaultBeanDefinition();
+                dbd.setBeanClass(candidate);
+
+                final Constructor<?> constructor = determineConstructor(candidate);
+                final Class<?>[] parameterTypes = constructor.getParameterTypes();
+                for (Class<?> parameterType : parameterTypes) {
+                    final String beanNameOfDependency = generateBeanNameFromClass(parameterType);
+                    dbd.setDependsOn(beanNameOfDependency);
+                }
+
+                final String beanNameFromClass = generateBeanNameFromClass(candidate);
+                registry.registerBeanDefinition(beanNameFromClass, dbd);
+            }
+        }
+
+        return (registry.getBeanDefinitionCount() - beanCountAtScanStart);
+    }
+
+    private Constructor<?> determineConstructor(Class<?> candidate) {
+        return candidate.getDeclaredConstructors()[0];
+    }
+
+    private String generateBeanNameFromClass(Class<?> clazz) {
+        final String simpleName = clazz.getSimpleName();
+        final String first = simpleName.substring(0, 1);
+        final String rest = simpleName.substring(1);
+        return first.toLowerCase() + rest;
     }
 }
