@@ -2,6 +2,7 @@ package wsffs.springframework.context.annotation;
 
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
+import wsffs.springframework.beans.BeanUtils;
 import wsffs.springframework.beans.factory.config.BeanDefinition;
 import wsffs.springframework.beans.factory.config.DefaultBeanDefinition;
 import wsffs.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -57,7 +58,7 @@ public class ClassPathBeanDefinitionScanner {
                 final BeanDefinition dbd = new DefaultBeanDefinition();
                 dbd.setBeanClass(candidate);
 
-                final Constructor<?> constructor = determineConstructor(candidate);
+                final Constructor<?> constructor = BeanUtils.getCandidateConstructor(candidate);
                 final Class<?>[] parameterTypes = constructor.getParameterTypes();
                 for (Class<?> parameterType : parameterTypes) {
                     final String beanNameOfDependency = beanNameGenerator.generateBeanNameFromClass(parameterType);
@@ -70,9 +71,5 @@ public class ClassPathBeanDefinitionScanner {
         }
 
         return (registry.getBeanDefinitionCount() - beanCountAtScanStart);
-    }
-
-    private Constructor<?> determineConstructor(Class<?> candidate) {
-        return candidate.getDeclaredConstructors()[0];
     }
 }
