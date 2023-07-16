@@ -56,8 +56,13 @@ public class AnnotationConfigServletWebServerApplicationContext
     }
 
     @Override
+    public int getBeanDefinitionCount() {
+        return 0;
+    }
+
+    @Override
     public void registerBeanDefinition(String beanName, BeanDefinition beanDefinition) {
-        
+
     }
 
     @Override
