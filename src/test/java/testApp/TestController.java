@@ -10,4 +10,8 @@ public class TestController {
     public TestController(TestService testService) {
         this.testService = testService;
     }
+
+    public String sayHello() {
+        return testService.sayHello();
+    }
 }

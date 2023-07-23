@@ -85,13 +85,6 @@ public class AnnotationConfigServletWebServerApplicationContext
         }
 
         final String[] nameOfDependencies = beanDefinition.getDependsOn();
-        // 의존성이 존재하지 않는 경우 바로 생성해서 반환
-        if (nameOfDependencies.length == 0) {
-            final Constructor<?> constructor = BeanUtils.getCandidateConstructor(beanClass);
-            final Object newInstance = BeanUtils.instantiate(constructor, beanClass);
-            beanMap.put(beanName, newInstance);
-            return newInstance;
-        }
 
         // 의존성이 있다면 의존성 그래프를 탐색하자
         final List<Object> dependencies = new ArrayList<>();
