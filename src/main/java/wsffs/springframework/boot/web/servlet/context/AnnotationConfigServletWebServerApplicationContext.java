@@ -45,7 +45,7 @@ public class AnnotationConfigServletWebServerApplicationContext
      * <p>As this is a startup method, it should destroy already created singletons
      * if it fails, to avoid dangling resources. In other words, after invocation
      * of this method, either all or no singletons at all should be instantiated.
-     *
+     * <p>
      * 설정의 영속적인 표현을 로드하거나 리프레시 할 수 있습니다. 이는 자바 기반 설정, XML 파일,
      * 프로퍼티 파일, 관계형 데이터베이스 스키마 스키마 혹은 몇 다른 포맷등에서 가져올 수 있습니다.
      * 이는 startup 메소드로서, 실패하는 경우 생성된 싱글톤들을 제거하여 댕글링 리소스를 피할 수 있습니다.
@@ -58,19 +58,12 @@ public class AnnotationConfigServletWebServerApplicationContext
      */
     public void refresh() throws BeansException {
         scanner.scan(basePackages);
+        initializeBeans();
+    }
 
-        // 의존성이 없는 bean부터 초기화
+    private void initializeBeans() {
         for (BeanDefinition beanDefinition : beanDefinitionMap.values()) {
-            if (beanDefinition.getDependsOn().length == 0) {
-                buildBeanAndRegisterBeanWithBeanDefinition(beanDefinition);
-            }
-        }
-
-        // 의존성이 존재하는 bean 초기화
-        for (BeanDefinition beanDefinition : beanDefinitionMap.values()) {
-            if (beanDefinition.getDependsOn().length > 0) {
-                buildBeanAndRegisterBeanWithBeanDefinition(beanDefinition);
-            }
+            buildBeanAndRegisterBeanWithBeanDefinition(beanDefinition);
         }
     }
 
