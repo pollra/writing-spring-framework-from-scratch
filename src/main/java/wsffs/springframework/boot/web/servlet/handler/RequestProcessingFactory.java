@@ -51,11 +51,10 @@ public class RequestProcessingFactory {
   }
 
   public HandlerMethodDefinition getProcessMethod(HandlerDefinition handlerDefinition) {
-    for (Map.Entry<HandlerDefinition, HandlerMethodDefinition> entry : uriProcessingMethods.entrySet()) {
-      if( entry.getKey().isMatched(handlerDefinition)) {
-        return entry.getValue();
-      }
+    HandlerMethodDefinition handlerMethodDefinition = uriProcessingMethods.get(handlerDefinition);
+    if (handlerMethodDefinition == null) {
+      throw new IllegalCallerException();
     }
-    throw new IllegalArgumentException();
+    return handlerMethodDefinition;
   }
 }
