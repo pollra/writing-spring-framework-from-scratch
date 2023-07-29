@@ -17,7 +17,7 @@ public class DefinitionUrl {
     if(urlSplit.length >= 2) {
       this.queries = urlSplit[1];
     } else {
-      this.queries = "";현
+      this.queries = "";
     }
     this.hasPathVariable = urlHasPathVariable(this.path);
   }
