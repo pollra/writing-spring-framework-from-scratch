@@ -1,0 +1,8 @@
+package wsffs.springframework.boot.web.server;
+
+public interface WebServer {
+
+    void start() throws WebServerException;
+
+    void stop() throws WebServerException;
+}

@@ -3,9 +3,11 @@ package wsffs.springframework.boot.web.servlet.context;
 import wsffs.springframework.beans.BeanUtils;
 import wsffs.springframework.beans.BeansException;
 import wsffs.springframework.beans.factory.config.BeanDefinition;
+import wsffs.springframework.beans.factory.config.SingletonBeanRegistry;
 import wsffs.springframework.beans.factory.support.BeanDefinitionRegistry;
 import wsffs.springframework.beans.factory.support.BeanNameGenerator;
 import wsffs.springframework.beans.factory.support.DefaultBeanNameGenerator;
+import wsffs.springframework.boot.web.server.WebServer;
 import wsffs.springframework.context.ApplicationContext;
 import wsffs.springframework.context.Lifecycle;
 import wsffs.springframework.context.annotation.AnnotationConfigRegistry;
@@ -18,7 +20,10 @@ import java.util.List;
 import java.util.Map;
 
 public class AnnotationConfigServletWebServerApplicationContext
-        implements ApplicationContext, AnnotationConfigRegistry, BeanDefinitionRegistry {
+        implements ApplicationContext,
+        AnnotationConfigRegistry,
+        BeanDefinitionRegistry,
+        SingletonBeanRegistry {
 
     private final ClassPathBeanDefinitionScanner scanner;
 
@@ -36,7 +41,8 @@ public class AnnotationConfigServletWebServerApplicationContext
     public AnnotationConfigServletWebServerApplicationContext(String... basePackages) {
         this();
         scan(basePackages);
-        refresh();
+        refresh();  // bean
+
     }
 
     /**
@@ -59,8 +65,18 @@ public class AnnotationConfigServletWebServerApplicationContext
      */
     public void refresh() throws BeansException {
         scanner.scan(basePackages);
-        initializeBeans();
-        finishRefresh();
+        initializeBeans();  // bean 생성 & 등록 - 초기화
+        onRefresh();        // 웹 서버 생성
+        finishRefresh();    // lifecycle bean 시작 (웹 서버 시작)
+    }
+
+    private void onRefresh() {
+        // 여기서 서버 생성
+        createWebServer();
+    }
+
+    private void createWebServer() {
+
     }
 
     private void finishRefresh() {
@@ -130,5 +146,10 @@ public class AnnotationConfigServletWebServerApplicationContext
     @Override
     public boolean containsBeanDefinition(String beanName) {
         return false;
+    }
+
+    @Override
+    public void registerSingleton(String beanName, Object singletonObject) {
+
     }
 }
