@@ -4,6 +4,8 @@ import wsffs.springframework.beans.BeansException;
 
 public interface BeanFactory {
 
+    void refresh();
+    Object getBean(String name);
     /**
      * Return an instance, which may be shared or independent, of the specified bean.
      * <p>Behaves the same as {@link #getBean(String)}, but provides a measure of type
@@ -23,4 +25,6 @@ public interface BeanFactory {
      * 역자 코멘트: 학습 용도로 번역해둔 주석입니다. 참고만 하세요.
      */
     <T> T getBean(String name, Class<T> requiredType) throws BeansException;
+    <T> T getBean(Class<T> requiredTpe, Object... args) throws BeansException;
+    boolean containsBean(String name);
 }
