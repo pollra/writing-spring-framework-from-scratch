@@ -26,5 +26,6 @@ public interface BeanFactory {
      */
     <T> T getBean(String name, Class<T> requiredType) throws BeansException;
     <T> T getBean(Class<T> requiredTpe, Object... args) throws BeansException;
+    Class getScanRootPath();
     boolean containsBean(String name);
 }

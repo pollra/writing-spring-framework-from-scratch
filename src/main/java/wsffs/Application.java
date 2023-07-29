@@ -3,8 +3,8 @@ package wsffs;
 import org.eclipse.jetty.server.Server;
 import wsffs.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext;
 import wsffs.springframework.context.ApplicationContext;
+import wsffs.springframework.boot.web.servlet.controller.ServletFrontController;
 import wsffs.web.DummyObject;
-import wsffs.web.DummyRepository;
 import wsffs.web.DummyService;
 
 public class Application {
@@ -16,6 +16,19 @@ public class Application {
         DummyService dummyService = applicationContext.getBean("dummyService", DummyService.class);
         DummyObject dummy = dummyService.get();
         System.out.println("dummy = " + dummy);
+
+        ServletFrontController servletFrontController = new ServletFrontController(applicationContext);
+        Server server = new Server(8080);
+
+        try {
+            server.setHandler(servletFrontController);
+
+            server.start();
+            server.join();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }
 
