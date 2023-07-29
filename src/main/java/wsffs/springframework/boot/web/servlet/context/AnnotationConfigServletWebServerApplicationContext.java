@@ -27,8 +27,10 @@ public class AnnotationConfigServletWebServerApplicationContext  implements Appl
     private final Map<String, Object> beanRegister;
 
     private BeanScanner beanScanner;
+    private final Class scanRootPath;
 
     public AnnotationConfigServletWebServerApplicationContext(Class scanStartPoint) {
+        this.scanRootPath = scanStartPoint;
         beanScanner = new BeanScanner(scanStartPoint);
         this.beanDefinitions = new HashMap<>();
         this.beanRegister = new HashMap<>();
@@ -108,6 +110,11 @@ public class AnnotationConfigServletWebServerApplicationContext  implements Appl
         String beanName = BeanNameUtils.getName(name);
         Object instance = beanRegister.get(beanName);
         return instance != null;
+    }
+
+    @Override
+    public Class getScanRootPath() {
+        return this.scanRootPath;
     }
 }
 //
