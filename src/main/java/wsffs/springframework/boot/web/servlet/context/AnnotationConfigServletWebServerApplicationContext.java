@@ -7,6 +7,7 @@ import wsffs.springframework.beans.factory.support.BeanDefinitionRegistry;
 import wsffs.springframework.beans.factory.support.BeanNameGenerator;
 import wsffs.springframework.beans.factory.support.DefaultBeanNameGenerator;
 import wsffs.springframework.context.ApplicationContext;
+import wsffs.springframework.context.Lifecycle;
 import wsffs.springframework.context.annotation.AnnotationConfigRegistry;
 import wsffs.springframework.context.annotation.ClassPathBeanDefinitionScanner;
 
@@ -59,6 +60,15 @@ public class AnnotationConfigServletWebServerApplicationContext
     public void refresh() throws BeansException {
         scanner.scan(basePackages);
         initializeBeans();
+        finishRefresh();
+    }
+
+    private void finishRefresh() {
+        for (Object bean : beanMap.values()) {
+            if (bean instanceof Lifecycle lifecycleBean) {
+                lifecycleBean.start();
+            }
+        }
     }
 
     private void initializeBeans() {
