@@ -1,5 +1,6 @@
 package wsffs.springframework.boot.web.servlet.handler.definition;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import lombok.ToString;
@@ -12,11 +13,13 @@ public class HandlerDefinition {
 
   private HttpMethod httpMethod;
   private DefinitionUrl url;
+  private List<PathVariableDefinition> pathVariableDefinitions;
 
   public HandlerDefinition(HttpMethod httpMethod, String url) {
     Objects.requireNonNull(httpMethod);
     Objects.requireNonNull(url);
     this.httpMethod = httpMethod;
+
     pathAndQueryMapping(url);
   }
 

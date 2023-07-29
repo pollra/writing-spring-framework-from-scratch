@@ -2,13 +2,13 @@ package wsffs.springframework.boot.web.servlet.handler.definition;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import org.eclipse.jetty.util.StringUtil;
 import wsffs.springframework.boot.web.servlet.handler.definition.exception.DefinitionException;
 
 public class DefinitionUrl {
 
   private final String path;
-  private final boolean hasPathVariable;
   private final String queries;
 
   public DefinitionUrl(String url) {
@@ -19,8 +19,15 @@ public class DefinitionUrl {
     } else {
       this.queries = "";
     }
-    this.hasPathVariable = urlHasPathVariable(this.path);
+
+    // URL 매핑 구조화?
+
+    // 어떤 형태의 값인지 어떻게 매핑?
+
+    // 같음은 어떻게 증명?
   }
+
+  // 밖의 주석
 
   private boolean urlHasPathVariable(String path) {
     if(path.contains("{")) {
@@ -41,23 +48,20 @@ public class DefinitionUrl {
   }
 
   public boolean isMatched(DefinitionUrl requestUrl) {
-    if(hasPathVariable) {
-      String[] persistPaths = this.path.split("/");
-      String[] requestPaths = requestUrl.path.split("/");
+    String[] persistPaths = this.path.split("/");
+    String[] requestPaths = requestUrl.path.split("/");
 
-      if(persistPaths.length != requestPaths.length) {
+    if(persistPaths.length != requestPaths.length) {
+      return false;
+    }
+
+    for (int i = 0; i < persistPaths.length; i++) {
+      boolean isNotEquals = ! isMatched(persistPaths[i], requestPaths[i]);
+      if(isNotEquals) {
         return false;
       }
-
-      for (int i = 0; i < persistPaths.length; i++) {
-        boolean isNotEquals = ! isMatched(persistPaths[i], requestPaths[i]);
-        if(isNotEquals) {
-          return false;
-        }
-      }
-      return true;
     }
-    return isMatched(this.path, requestUrl.path);
+    return true;
   }
 
   private boolean isMatched(String persist, String request) {
@@ -94,5 +98,23 @@ public class DefinitionUrl {
       result.put(entry[key], entry[value]);
     }
     return result;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    DefinitionUrl that = (DefinitionUrl) o;
+    return Objects.equals(path, that.path) && Objects.equals(queries,
+        that.queries);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(path, queries);
   }
 }
