@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import testApp.TestApplication;
 import testApp.TestController;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class AnnotationConfigServletWebServerApplicationContextTest {
@@ -23,5 +24,6 @@ class AnnotationConfigServletWebServerApplicationContextTest {
 
         // then
         assertNotNull(testController);
+        assertEquals("Hello", testController.sayHello());
     }
 }
