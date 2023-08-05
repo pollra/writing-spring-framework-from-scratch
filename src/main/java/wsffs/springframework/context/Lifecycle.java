@@ -2,7 +2,7 @@ package wsffs.springframework.context;
 
 public interface Lifecycle {
 
-    void start();
+    void start() throws Exception;
 
     void stop();
 

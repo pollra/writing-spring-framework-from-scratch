@@ -10,6 +10,7 @@ import wsffs.springframework.beans.factory.config.SingletonBeanRegistry;
 import wsffs.springframework.beans.factory.support.BeanDefinitionRegistry;
 import wsffs.springframework.beans.factory.support.BeanNameGenerator;
 import wsffs.springframework.beans.factory.support.DefaultBeanNameGenerator;
+import wsffs.springframework.boot.web.servlet.controller.ServletFrontController;
 import wsffs.springframework.context.ApplicationContext;
 
 import java.lang.annotation.Annotation;
@@ -21,8 +22,10 @@ import java.util.Objects;
 import java.util.Set;
 import wsffs.springframework.context.annotation.AnnotationConfigRegistry;
 import wsffs.springframework.context.annotation.ClassPathBeanDefinitionScanner;
+import wsffs.springframework.context.server.EmbeddedWebServer;
+import wsffs.springframework.context.server.JettyEmbeddedWebServer;
 
-public class AnnotationConfigServletWebServerApplicationContext  implements ApplicationContext {
+public class AnnotationConfigServletWebServerApplicationContext  implements ApplicationContext, SingletonBeanRegistry {
 
     private final Map<String, BeanDefinition> beanDefinitions;
     private final Map<String, Object> beanRegister;
@@ -48,6 +51,22 @@ public class AnnotationConfigServletWebServerApplicationContext  implements Appl
             BeanDefinition beanDefinition = new DefaultBeanDefinition(candidateBean);
             beanDefinitions.put(beanDefinition.getBeanName(), beanDefinition);
         }
+        onRefresh();        // 웹 서버 생성
+    }
+
+    @Override
+    public void registerSingleton(String beanName, Object singletonObject) {
+
+    }
+
+    private void onRefresh() {
+        createWebServer();
+    }
+
+    private void createWebServer() {
+        EmbeddedWebServer server = new JettyEmbeddedWebServer(8080);
+        ServletFrontController servletFrontController = new ServletFrontController(this);
+        server.setHandler(servletFrontController);
     }
 
     public Object getBean(String name) {
